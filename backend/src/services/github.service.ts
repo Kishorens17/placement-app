@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { config } from '../config/env.js';
+import { sanitizeGithubUsername } from '../utils/sanitize.js';
 
 const githubApi = axios.create({
   baseURL: 'https://api.github.com',
@@ -11,7 +12,9 @@ const githubApi = axios.create({
 
 export async function validateGithubUsername(username: string): Promise<boolean> {
   try {
-    const response = await githubApi.get(`/users/${username}`);
+    const cleanUsername = sanitizeGithubUsername(username);
+    if (!cleanUsername) return false;
+    const response = await githubApi.get(`/users/${cleanUsername}`);
     return response.status === 200;
   } catch (error) {
     return false;
@@ -20,7 +23,8 @@ export async function validateGithubUsername(username: string): Promise<boolean>
 
 export async function getGithubRepos(username: string) {
   try {
-    const response = await githubApi.get(`/users/${username}/repos`, {
+    const cleanUsername = sanitizeGithubUsername(username);
+    const response = await githubApi.get(`/users/${cleanUsername}/repos`, {
       params: {
         sort: 'updated',
         per_page: 100,
@@ -51,16 +55,27 @@ export async function getGithubRepos(username: string) {
 }
 
 export async function getRepoFiles(username: string, repoName: string) {
+  const cleanUsername = sanitizeGithubUsername(username);
   try {
-    const response = await githubApi.get(`/repos/${username}/${repoName}/git/trees/main?recursive=1`);
-    return response.data.tree;
+    const response = await githubApi.get(`/repos/${cleanUsername}/${repoName}/git/trees/main?recursive=1`);
+    return response.data.tree || [];
   } catch (error) {
     // Try master branch if main doesn't exist
     try {
-      const response = await githubApi.get(`/repos/${username}/${repoName}/git/trees/master?recursive=1`);
-      return response.data.tree;
+      const response = await githubApi.get(`/repos/${cleanUsername}/${repoName}/git/trees/master?recursive=1`);
+      return response.data.tree || [];
     } catch (err) {
-      throw new Error('Failed to fetch repository files');
+      try {
+        const repoInfo = await githubApi.get(`/repos/${cleanUsername}/${repoName}`);
+        const defaultBranch = repoInfo.data?.default_branch;
+        if (defaultBranch && defaultBranch !== 'main' && defaultBranch !== 'master') {
+          const response = await githubApi.get(`/repos/${cleanUsername}/${repoName}/git/trees/${defaultBranch}?recursive=1`);
+          return response.data.tree || [];
+        }
+      } catch (innerErr) {
+        // Repo is empty or branch not found
+      }
+      return [];
     }
   }
 }

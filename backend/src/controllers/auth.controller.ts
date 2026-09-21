@@ -4,8 +4,47 @@ import jwt from 'jsonwebtoken';
 import supabase from '../services/supabase.service.js';
 import { validateGithubUsername } from '../services/github.service.js';
 import { validateLeetcodeUsername } from '../services/leetcode.service.js';
+import { sanitizeGithubUsername, sanitizeLeetcodeUsername } from '../utils/sanitize.js';
 import { config } from '../config/env.js';
 import { JWTPayload } from '../types/index.js';
+
+export async function validateLeetcode(req: Request, res: Response) {
+  try {
+    const rawUsername = (req.query.username as string) || (req.body?.username as string) || '';
+    const cleanUsername = sanitizeLeetcodeUsername(rawUsername);
+    if (!cleanUsername) {
+      return res.status(400).json({ valid: false, error: 'LeetCode username is required' });
+    }
+
+    const isValid = await validateLeetcodeUsername(cleanUsername);
+    return res.json({
+      valid: isValid,
+      username: cleanUsername,
+      error: isValid ? undefined : 'LeetCode username not found',
+    });
+  } catch (error) {
+    return res.status(500).json({ valid: false, error: 'Failed to validate LeetCode username' });
+  }
+}
+
+export async function validateGithub(req: Request, res: Response) {
+  try {
+    const rawUsername = (req.query.username as string) || (req.body?.username as string) || '';
+    const cleanUsername = sanitizeGithubUsername(rawUsername);
+    if (!cleanUsername) {
+      return res.status(400).json({ valid: false, error: 'GitHub username is required' });
+    }
+
+    const isValid = await validateGithubUsername(cleanUsername);
+    return res.json({
+      valid: isValid,
+      username: cleanUsername,
+      error: isValid ? undefined : 'GitHub username not found',
+    });
+  } catch (error) {
+    return res.status(500).json({ valid: false, error: 'Failed to validate GitHub username' });
+  }
+}
 
 export async function signup(req: Request, res: Response) {
   try {
@@ -16,14 +55,17 @@ export async function signup(req: Request, res: Response) {
       return res.status(400).json({ error: 'All required fields must be provided' });
     }
 
+    const cleanGithub = sanitizeGithubUsername(githubUsername);
+    const cleanLeetcode = sanitizeLeetcodeUsername(leetcodeUsername);
+
     // Validate GitHub username
-    const isGithubValid = await validateGithubUsername(githubUsername);
+    const isGithubValid = await validateGithubUsername(cleanGithub);
     if (!isGithubValid) {
       return res.status(400).json({ error: 'Invalid GitHub username' });
     }
 
     // Validate LeetCode username
-    const isLeetcodeValid = await validateLeetcodeUsername(leetcodeUsername);
+    const isLeetcodeValid = await validateLeetcodeUsername(cleanLeetcode);
     if (!isLeetcodeValid) {
       return res.status(400).json({ error: 'Invalid LeetCode username' });
     }
@@ -51,8 +93,8 @@ export async function signup(req: Request, res: Response) {
         roll_no: rollNo,
         start_year: startYear,
         end_year: endYear,
-        github_username: githubUsername,
-        leetcode_username: leetcodeUsername,
+        github_username: cleanGithub,
+        leetcode_username: cleanLeetcode,
       })
       .select()
       .single();

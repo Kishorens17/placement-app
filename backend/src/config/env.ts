@@ -9,8 +9,10 @@ export const config = {
   supabase: {
     url: process.env.SUPABASE_URL!,
     anonKey: process.env.SUPABASE_ANON_KEY!,
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY,
   },
   github: {
     token: process.env.GITHUB_TOKEN,
   },
 };
+

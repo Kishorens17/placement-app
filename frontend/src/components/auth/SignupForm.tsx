@@ -1,6 +1,8 @@
 import { useState, Fragment, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
+import { extractGithubUsername, extractLeetcodeUsername } from '../../utils/sanitize';
 
 type Step = 1 | 2 | 3;
 
@@ -27,50 +29,60 @@ export default function SignupForm() {
   const navigate = useNavigate();
 
   const validateGithubUsername = async () => {
-    if (!githubUsername) return;
+    const clean = extractGithubUsername(githubUsername);
+    if (!clean) {
+      setError('Please enter a valid GitHub username or profile URL');
+      return;
+    }
+    setGithubUsername(clean);
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch(`https://api.github.com/users/${githubUsername}`);
-      setGithubValid(response.ok);
-      if (!response.ok) {
-        setError('GitHub username not found');
+      const response = await api.get('/auth/validate-github', {
+        params: { username: clean },
+      });
+      const isValid = !!response.data?.valid;
+      setGithubValid(isValid);
+      if (response.data?.username) {
+        setGithubUsername(response.data.username);
       }
-    } catch (err) {
+      if (!isValid) {
+        setError(response.data?.error || 'GitHub username not found');
+      }
+    } catch (err: any) {
       setGithubValid(false);
-      setError('Failed to validate GitHub username');
+      setError(err.response?.data?.error || 'Failed to validate GitHub username');
     } finally {
       setLoading(false);
     }
   };
 
   const validateLeetcodeUsername = async () => {
-    if (!leetcodeUsername) return;
+    const clean = extractLeetcodeUsername(leetcodeUsername);
+    if (!clean) {
+      setError('Please enter a valid LeetCode username or profile URL');
+      return;
+    }
+    setLeetcodeUsername(clean);
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch('https://leetcode.com/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: `query getUserProfile($username: String!) {
-            matchedUser(username: $username) { username }
-          }`,
-          variables: { username: leetcodeUsername },
-        }),
+      const response = await api.get('/auth/validate-leetcode', {
+        params: { username: clean },
       });
-
-      const data = await response.json();
-      const isValid = !!data?.data?.matchedUser;
+      const isValid = !!response.data?.valid;
       setLeetcodeValid(isValid);
-      if (!isValid) {
-        setError('LeetCode username not found');
+      if (response.data?.username) {
+        setLeetcodeUsername(response.data.username);
       }
-    } catch (err) {
+      if (!isValid) {
+        setError(response.data?.error || 'LeetCode username not found');
+      }
+    } catch (err: any) {
       setLeetcodeValid(false);
-      setError('Failed to validate LeetCode username');
+      setError(err.response?.data?.error || 'Failed to validate LeetCode username');
     } finally {
       setLoading(false);
     }
@@ -116,6 +128,9 @@ export default function SignupForm() {
     setLoading(true);
     setError('');
 
+    const cleanGithub = extractGithubUsername(githubUsername);
+    const cleanLeetcode = extractLeetcodeUsername(leetcodeUsername);
+
     try {
       await signup({
         username,
@@ -123,8 +138,8 @@ export default function SignupForm() {
         rollNo: rollNo || undefined,
         startYear: parseInt(startYear),
         endYear: parseInt(endYear),
-        githubUsername,
-        leetcodeUsername,
+        githubUsername: cleanGithub,
+        leetcodeUsername: cleanLeetcode,
       });
       navigate('/dashboard');
     } catch (err: any) {
@@ -270,9 +285,14 @@ export default function SignupForm() {
                     setGithubValid(null);
                     setError('');
                   }}
+                  onBlur={() => {
+                    if (githubUsername) {
+                      setGithubUsername(extractGithubUsername(githubUsername));
+                    }
+                  }}
                   required
                   className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="your-github-username"
+                  placeholder="username or profile URL"
                 />
                 <button
                   type="button"
@@ -324,9 +344,14 @@ export default function SignupForm() {
                     setLeetcodeValid(null);
                     setError('');
                   }}
+                  onBlur={() => {
+                    if (leetcodeUsername) {
+                      setLeetcodeUsername(extractLeetcodeUsername(leetcodeUsername));
+                    }
+                  }}
                   required
                   className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="your-leetcode-username"
+                  placeholder="username or profile URL (e.g. KISHORE_NSK)"
                 />
                 <button
                   type="button"

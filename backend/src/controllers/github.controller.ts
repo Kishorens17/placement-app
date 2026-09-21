@@ -98,6 +98,10 @@ export async function analyzeRepositories(req: AuthRequest, res: Response) {
       try {
         // Get repo files
         const files = await getRepoFiles(user.github_username, repo.name);
+        if (!files || files.length === 0) {
+          console.log(`Skipping empty or inaccessible repository: ${repo.name}`);
+          continue;
+        }
 
         // Get README content
         const readmeFile = files.find((f: any) =>

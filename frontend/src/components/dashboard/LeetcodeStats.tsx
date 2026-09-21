@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../../services/api';
 
 interface LeetcodeData {
@@ -19,10 +20,13 @@ export default function LeetcodeStats() {
     fetchLeetcodeStats();
   }, []);
 
-  const fetchLeetcodeStats = async () => {
+  const fetchLeetcodeStats = async (forceRefresh = false) => {
     try {
       setLoading(true);
-      const response = await api.get('/leetcode/stats');
+      setError('');
+      const response = await api.get('/leetcode/stats', {
+        params: forceRefresh ? { refresh: 'true' } : {},
+      });
       setData(response.data);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to fetch LeetCode stats');
@@ -123,12 +127,20 @@ export default function LeetcodeStats() {
           </div>
         </div>
 
-        <button
-          onClick={fetchLeetcodeStats}
-          className="w-full py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all text-sm"
-        >
-          Refresh Data
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => fetchLeetcodeStats(true)}
+            className="flex-1 py-2 px-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all text-sm font-medium"
+          >
+            Refresh
+          </button>
+          <Link
+            to="/leetcode"
+            className="flex-1 py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all text-sm font-semibold text-center flex items-center justify-center gap-1 shadow"
+          >
+            Full Analysis →
+          </Link>
+        </div>
       </div>
     </div>
   );

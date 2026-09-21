@@ -27,9 +27,10 @@ export async function getLeetcodeStatsController(req: AuthRequest, res: Response
       .single();
 
     const now = new Date();
+    const forceRefresh = req.query.refresh === 'true';
     const cacheAge = cache ? (now.getTime() - new Date(cache.fetched_at).getTime()) / (1000 * 60 * 60) : 25;
 
-    if (cache && cacheAge < 24) {
+    if (!forceRefresh && cache && cacheAge < 24) {
       return res.json({
         totalSolved: cache.total_solved,
         easySolved: cache.easy_solved,
