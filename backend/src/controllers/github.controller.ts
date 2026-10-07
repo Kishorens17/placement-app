@@ -15,8 +15,8 @@ export async function getGithubStats(req: AuthRequest, res: Response) {
       .eq('id', userId)
       .single();
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    if (!user || !user.github_username) {
+      return res.status(404).json({ error: 'GitHub username not linked to this account' });
     }
 
     // Check cache
@@ -58,9 +58,9 @@ export async function getGithubStats(req: AuthRequest, res: Response) {
       repos: githubData.repos,
       cached: false,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get GitHub stats error:', error);
-    res.status(500).json({ error: 'Failed to fetch GitHub stats' });
+    res.status(500).json({ error: error?.message || 'Failed to fetch GitHub stats' });
   }
 }
 
@@ -93,36 +93,55 @@ export async function analyzeRepositories(req: AuthRequest, res: Response) {
     const repos = cache.repos_data as any[];
     const analyses = [];
 
-    // Analyze each repository (limit to first 10 for performance)
-    for (const repo of repos.slice(0, 10)) {
+    // Analyze all repositories in the user's account
+    for (const repo of repos) {
       try {
         // Get repo files
         const files = await getRepoFiles(user.github_username, repo.name);
-        if (!files || files.length === 0) {
-          console.log(`Skipping empty or inaccessible repository: ${repo.name}`);
-          continue;
+        const isEmpty = !files || files.length === 0;
+
+        let readmeContent: string | null = null;
+        let configContent: string | null = null;
+
+        if (!isEmpty) {
+          // Get README content
+          const readmeFile = files.find((f: any) =>
+            f.path.toLowerCase().match(/^readme\.(md|txt|markdown)$/i)
+          );
+          readmeContent = readmeFile
+            ? await getFileContent(user.github_username, repo.name, readmeFile.path)
+            : null;
+
+          // Get package.json or similar
+          const configFile = files.find((f: any) =>
+            f.path.match(/^(package\.json|requirements\.txt|pom\.xml|cargo\.toml|go\.mod)$/i)
+          );
+          configContent = configFile
+            ? await getFileContent(user.github_username, repo.name, configFile.path)
+            : null;
         }
 
-        // Get README content
-        const readmeFile = files.find((f: any) =>
-          f.path.toLowerCase().match(/^readme\.(md|txt)$/i)
+        const hasReadmeText = !!(readmeContent && readmeContent.trim().length > 0);
+        const hasCodeFiles = !isEmpty && files.some((f: any) =>
+          f.type === 'blob' && !f.path.toLowerCase().match(/^(\.git|license|notice|readme)/i)
         );
-        const readmeContent = readmeFile
-          ? await getFileContent(user.github_username, repo.name, readmeFile.path)
-          : null;
 
-        // Get package.json or similar
-        const configFile = files.find((f: any) =>
-          f.path.match(/^(package\.json|requirements\.txt|pom\.xml|Cargo\.toml)$/i)
-        );
-        const configContent = configFile
-          ? await getFileContent(user.github_username, repo.name, configFile.path)
-          : null;
+        let analysis: any;
 
-        // Analyze repository
-        const analysis = await analyzeRepository(repo.name, files, readmeContent, configContent);
+        // If repository is empty or has no code and no README contents: score 0, comment "No contents"
+        if (isEmpty || (!hasReadmeText && !hasCodeFiles)) {
+          analysis = {
+            score: 0,
+            strengths: [],
+            weaknesses: ['No contents found in repository'],
+            detailed_analysis: 'Repository is empty and contains no project code or README documentation.',
+          };
+        } else {
+          // Analyze repository with AI
+          analysis = await analyzeRepository(repo.name, files, readmeContent, configContent);
+        }
 
-        // Save analysis
+        // Save analysis to Supabase
         await supabase
           .from('repo_analysis')
           .upsert({
@@ -137,13 +156,25 @@ export async function analyzeRepositories(req: AuthRequest, res: Response) {
           });
 
         analyses.push({
+          repo_name: repo.name,
           repoName: repo.name,
+          repo_url: repo.url,
           repoUrl: repo.url,
           ...analysis,
         });
       } catch (error) {
         console.error(`Error analyzing ${repo.name}:`, error);
-        // Continue with other repos
+        const fallbackAnalysis = {
+          repo_name: repo.name,
+          repoName: repo.name,
+          repo_url: repo.url,
+          repoUrl: repo.url,
+          score: 0,
+          strengths: [],
+          weaknesses: ['No contents accessible or empty repository'],
+          detailed_analysis: 'Unable to retrieve repository contents or repository is private/empty.',
+        };
+        analyses.push(fallbackAnalysis);
       }
     }
 

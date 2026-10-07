@@ -6,6 +6,7 @@ export interface User {
   endYear: number;
   githubUsername: string;
   leetcodeUsername: string;
+  email?: string;
   createdAt: string;
 }
 
@@ -70,11 +71,52 @@ export interface MonthlyTarget {
   currentProgress?: number;
 }
 
-export interface RoadmapConcept {
+export interface ConceptSubtopic {
+  id: string;
   name: string;
+}
+
+export interface ConceptResource {
+  title: string;
+  url: string;
+  type: 'documentation' | 'video' | 'practice' | 'article';
+}
+
+export interface RoadmapConcept {
+  id?: string;
+  name: string;
+  category: 'Core Foundations' | 'Systems & Architecture' | 'Software & Development' | 'Emerging Tech';
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  estimatedHours: number;
+  description: string;
+  subtopics: ConceptSubtopic[];
+  interviewFocus: string[];
+  resources: ConceptResource[];
   completed: boolean;
   progressPercentage: number;
   notes?: string;
+  updatedAt?: string;
+}
+
+export interface RoadmapCategoryStat {
+  total: number;
+  completed: number;
+  inProgress: number;
+  avgProgress: number;
+}
+
+export interface RoadmapStats {
+  totalConcepts: number;
+  completedConcepts: number;
+  inProgressConcepts: number;
+  notStartedConcepts: number;
+  overallReadiness: number;
+  categoryBreakdown: Record<string, RoadmapCategoryStat>;
+}
+
+export interface RoadmapDataResponse {
+  concepts: RoadmapConcept[];
+  stats: RoadmapStats;
 }
 
 export interface ChatMessage {
@@ -101,4 +143,5 @@ export interface SignupData {
   endYear: number;
   githubUsername: string;
   leetcodeUsername: string;
+  email?: string;
 }

@@ -15,8 +15,8 @@ export async function getLeetcodeStatsController(req: AuthRequest, res: Response
       .eq('id', userId)
       .single();
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    if (!user || !user.leetcode_username) {
+      return res.status(404).json({ error: 'LeetCode username not linked to this account' });
     }
 
     // Check cache
@@ -72,9 +72,9 @@ export async function getLeetcodeStatsController(req: AuthRequest, res: Response
       conceptStats,
       cached: false,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get LeetCode stats error:', error);
-    res.status(500).json({ error: 'Failed to fetch LeetCode stats' });
+    res.status(500).json({ error: error?.message || 'Failed to fetch LeetCode stats' });
   }
 }
 
@@ -95,9 +95,12 @@ export async function getWeeklyTargets(req: AuthRequest, res: Response) {
       .eq('user_id', userId)
       .single();
 
-    if (!user || !leetcodeCache) {
-      return res.status(404).json({ error: 'User data not found' });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
+
+    const totalSolved = leetcodeCache?.total_solved ?? 0;
+    const conceptStats = leetcodeCache?.concept_stats ?? {};
 
     // Calculate current week start
     const now = new Date();
@@ -121,8 +124,8 @@ export async function getWeeklyTargets(req: AuthRequest, res: Response) {
     const targets = await calculateTargets(
       user.start_year,
       user.end_year,
-      leetcodeCache.total_solved,
-      leetcodeCache.concept_stats || {}
+      totalSolved,
+      conceptStats
     );
 
     // Save weekly target
@@ -161,9 +164,12 @@ export async function getMonthlyTargets(req: AuthRequest, res: Response) {
       .eq('user_id', userId)
       .single();
 
-    if (!user || !leetcodeCache) {
-      return res.status(404).json({ error: 'User data not found' });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
+
+    const totalSolved = leetcodeCache?.total_solved ?? 0;
+    const conceptStats = leetcodeCache?.concept_stats ?? {};
 
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -182,8 +188,8 @@ export async function getMonthlyTargets(req: AuthRequest, res: Response) {
     const targets = await calculateTargets(
       user.start_year,
       user.end_year,
-      leetcodeCache.total_solved,
-      leetcodeCache.concept_stats || {}
+      totalSolved,
+      conceptStats
     );
 
     const { data: newTarget } = await supabase

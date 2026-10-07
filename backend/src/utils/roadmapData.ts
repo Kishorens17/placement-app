@@ -1,0 +1,426 @@
+export interface ConceptSubtopic {
+  id: string;
+  name: string;
+}
+
+export interface ConceptResource {
+  title: string;
+  url: string;
+  type: 'documentation' | 'video' | 'practice' | 'article';
+}
+
+export interface ConceptDefinition {
+  name: string;
+  category: 'Core Foundations' | 'Systems & Architecture' | 'Software & Development' | 'Emerging Tech';
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  estimatedHours: number;
+  description: string;
+  subtopics: ConceptSubtopic[];
+  interviewFocus: string[];
+  resources: ConceptResource[];
+}
+
+export const CS_ROADMAP_DETAILS: ConceptDefinition[] = [
+  {
+    name: 'Data Structures',
+    category: 'Core Foundations',
+    difficulty: 'Beginner',
+    estimatedHours: 40,
+    description: 'Essential data organization methods including linear, tree, and graph structures necessary for coding interviews.',
+    subtopics: [
+      { id: 'arrays-strings', name: 'Arrays & Strings (Two-pointers, Sliding Window)' },
+      { id: 'linked-lists', name: 'Singly & Doubly Linked Lists, Fast & Slow Pointers' },
+      { id: 'stacks-queues', name: 'Stacks, Monotonic Stack, Queues, Deques' },
+      { id: 'trees-bst', name: 'Binary Trees, BST, Traversals (BFS, DFS)' },
+      { id: 'heaps-priority', name: 'Heaps, Min/Max Heap, Priority Queues' },
+      { id: 'hashing', name: 'Hash Maps, Hash Sets, Collision Resolution' },
+      { id: 'graphs-basics', name: 'Graph Representations, Adjacency List & Matrix' },
+      { id: 'tries', name: 'Tries & Prefix Trees' },
+    ],
+    interviewFocus: [
+      'Invert / serialize binary tree',
+      'Detect cycle in linked list',
+      'Trapping rain water (Monotonic stack)',
+      'Top K frequent elements (Heap / Bucket sort)',
+      'LRU Cache implementation',
+    ],
+    resources: [
+      { title: 'NeetCode Roadmap', url: 'https://neetcode.io/roadmap', type: 'practice' },
+      { title: 'Striver A2Z DSA Sheet', url: 'https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2', type: 'practice' },
+      { title: 'GeeksforGeeks Data Structures', url: 'https://www.geeksforgeeks.org/data-structures/', type: 'documentation' },
+    ],
+  },
+  {
+    name: 'Algorithms',
+    category: 'Core Foundations',
+    difficulty: 'Intermediate',
+    estimatedHours: 45,
+    description: 'Algorithmic paradigms for problem solving including recursion, dynamic programming, greedy, and graph traversals.',
+    subtopics: [
+      { id: 'sorting-searching', name: 'Binary Search & Sorting (Merge, Quick, Heap sort)' },
+      { id: 'recursion-backtracking', name: 'Recursion, Subsets, Permutations, N-Queens' },
+      { id: 'dynamic-programming', name: '1D & 2D Dynamic Programming (Knapsack, LCS, LIS)' },
+      { id: 'greedy-algorithms', name: 'Greedy Techniques & Interval Scheduling' },
+      { id: 'graph-algorithms', name: 'BFS, DFS, Dijkstra, Bellman-Ford, Kruskal, Prim' },
+      { id: 'topological-sort', name: 'Topological Sort & Kahn’s Algorithm' },
+      { id: 'union-find', name: 'Disjoint Set Union (DSU / Union-Find)' },
+      { id: 'bit-manipulation', name: 'Bitwise Tricks & Bitmasks' },
+    ],
+    interviewFocus: [
+      'Coin Change & Longest Common Subsequence (DP)',
+      'Word Ladder & Number of Islands (BFS/DFS)',
+      'Course Schedule (Topological sort)',
+      'Search in Rotated Sorted Array',
+      'Median of Two Sorted Arrays',
+    ],
+    resources: [
+      { title: 'Abdul Bari Algorithms (YouTube)', url: 'https://www.youtube.com/@abdul_bari', type: 'video' },
+      { title: 'CP-Algorithms Guide', url: 'https://cp-algorithms.com/', type: 'article' },
+      { title: 'LeetCode Curated 75', url: 'https://leetcode.com/problem-list/top-interview-questions/', type: 'practice' },
+    ],
+  },
+  {
+    name: 'Operating Systems',
+    category: 'Systems & Architecture',
+    difficulty: 'Intermediate',
+    estimatedHours: 30,
+    description: 'Fundamental OS concepts: process management, threads, memory paging, deadlocks, and file systems.',
+    subtopics: [
+      { id: 'processes-threads', name: 'Processes vs Threads, PCB, Context Switching' },
+      { id: 'cpu-scheduling', name: 'CPU Scheduling Algorithms (FCFS, SJF, Round Robin)' },
+      { id: 'process-sync', name: 'Synchronization, Mutex, Semaphores, Critical Section' },
+      { id: 'deadlocks', name: 'Deadlock Conditions, Bankers Algorithm, Prevention' },
+      { id: 'memory-management', name: 'Paging, Segmentation, Virtual Memory, Page Faults' },
+      { id: 'page-replacement', name: 'Page Replacement Algorithms (FIFO, LRU, Optimal)' },
+      { id: 'file-systems', name: 'File Systems, Inodes, Disk Scheduling (SCAN, SSTF)' },
+      { id: 'interprocess-comm', name: 'IPC (Pipes, Message Queues, Shared Memory)' },
+    ],
+    interviewFocus: [
+      'Difference between Process and Thread',
+      'What is Thrashing and how to prevent it?',
+      'Dining Philosophers and Producer-Consumer problem',
+      'Virtual Memory & TLB lookup process',
+      'What happens when a computer boots up?',
+    ],
+    resources: [
+      { title: 'Operating Systems: Three Easy Pieces (OSTEP)', url: 'https://pages.cs.wisc.edu/~remzi/OSTEP/', type: 'documentation' },
+      { title: 'Gate Smashers OS Playlist', url: 'https://www.youtube.com/playlist?list=PLxCzCOWd7aiGz9donHRrE9I3Mwn6XdPvP', type: 'video' },
+      { title: 'GeeksforGeeks OS Guide', url: 'https://www.geeksforgeeks.org/operating-systems/', type: 'article' },
+    ],
+  },
+  {
+    name: 'Database Management',
+    category: 'Systems & Architecture',
+    difficulty: 'Intermediate',
+    estimatedHours: 35,
+    description: 'Relational & non-relational database design, SQL querying, indexing, ACID properties, and normalization.',
+    subtopics: [
+      { id: 'relational-model', name: 'Relational Model & ER Diagrams' },
+      { id: 'sql-mastery', name: 'Complex SQL: JOINs, Subqueries, Aggregations, Window Functions' },
+      { id: 'normalization', name: 'Database Normalization (1NF, 2NF, 3NF, BCNF)' },
+      { id: 'transactions-acid', name: 'ACID Properties, Transaction Isolation Levels' },
+      { id: 'concurrency-control', name: 'Locking Protocols, 2PL, MVCC, Deadlocks in DB' },
+      { id: 'indexing-b-trees', name: 'B-Trees, B+ Trees, Clustered vs Non-Clustered Indexes' },
+      { id: 'nosql-concepts', name: 'NoSQL Types: Document, Key-Value, Columnar, Graph' },
+      { id: 'sharding-replication', name: 'Database Sharding, Replication, CAP Theorem' },
+    ],
+    interviewFocus: [
+      'Write SQL query for 2nd/Nth highest salary',
+      'Difference between Clustered and Non-Clustered Index',
+      'Explain ACID properties with real banking scenario',
+      'SQL vs NoSQL trade-offs and CAP Theorem',
+      'How does B+ Tree indexing optimize range queries?',
+    ],
+    resources: [
+      { title: 'Use The Index, Luke (SQL Indexing)', url: 'https://use-the-index-luke.com/', type: 'article' },
+      { title: 'CMU Database Systems (15-445/645)', url: 'https://15445.courses.cs.cmu.edu/', type: 'video' },
+      { title: 'LeetCode Database Problems', url: 'https://leetcode.com/problemset/database/', type: 'practice' },
+    ],
+  },
+  {
+    name: 'Computer Networks',
+    category: 'Systems & Architecture',
+    difficulty: 'Intermediate',
+    estimatedHours: 25,
+    description: 'Network communication protocols, OSI and TCP/IP stack, routing, DNS, HTTP/HTTPS, and network security.',
+    subtopics: [
+      { id: 'osi-tcpip-models', name: 'OSI 7 Layers vs TCP/IP Protocol Stack' },
+      { id: 'transport-layer', name: 'TCP 3-Way Handshake, TCP vs UDP, Flow & Congestion Control' },
+      { id: 'network-layer', name: 'IPv4 vs IPv6, Subnetting, CIDR, NAT, Routers' },
+      { id: 'routing-protocols', name: 'Distance Vector, Link State (OSPF, BGP)' },
+      { id: 'application-layer', name: 'DNS resolution, HTTP 1.1/2/3, WebSockets, SMTP' },
+      { id: 'network-security', name: 'SSL/TLS Handshake, Symmetric vs Asymmetric Encryption' },
+      { id: 'network-tools', name: 'Ping, Traceroute, Wireshark, Netstat, ARP' },
+    ],
+    interviewFocus: [
+      'What happens when you type google.com into your browser?',
+      'Difference between TCP and UDP with use cases',
+      'Explain the TCP 3-Way Handshake and 4-Way Teardown',
+      'How does HTTPS encrypt data (TLS handshake)?',
+      'What is Subnetting and how is CIDR notation calculated?',
+    ],
+    resources: [
+      { title: 'Computer Networking: A Top-Down Approach', url: 'https://gaia.cs.umass.edu/kurose_ross/online_lectures.htm', type: 'documentation' },
+      { title: 'Gate Smashers CN Playlist', url: 'https://www.youtube.com/playlist?list=PLxCzCOWd7aiGFBD2-2joCpWOLUrDLvVV_', type: 'video' },
+    ],
+  },
+  {
+    name: 'Object-Oriented Programming',
+    category: 'Core Foundations',
+    difficulty: 'Beginner',
+    estimatedHours: 20,
+    description: 'Object-oriented architecture, design patterns, inheritance, polymorphism, encapsulation, and SOLID principles.',
+    subtopics: [
+      { id: 'oop-four-pillars', name: 'Encapsulation, Abstraction, Inheritance, Polymorphism' },
+      { id: 'constructors-destructors', name: 'Constructors, Destructors, Method Overloading & Overriding' },
+      { id: 'interfaces-abstract', name: 'Interfaces vs Abstract Classes' },
+      { id: 'solid-principles', name: 'SOLID Principles (Single Responsibility, Open-Closed, etc.)' },
+      { id: 'design-patterns-creational', name: 'Creational Patterns (Singleton, Factory, Builder)' },
+      { id: 'design-patterns-structural', name: 'Structural Patterns (Adapter, Decorator, Facade)' },
+      { id: 'design-patterns-behavioral', name: 'Behavioral Patterns (Observer, Strategy, State)' },
+    ],
+    interviewFocus: [
+      'Explain SOLID principles with code examples',
+      'Difference between Interface and Abstract Class',
+      'Implement thread-safe Singleton pattern',
+      'Static vs Dynamic binding (runtime polymorphism)',
+      'Composition vs Inheritance trade-offs',
+    ],
+    resources: [
+      { title: 'Refactoring.Guru Design Patterns', url: 'https://refactoring.guru/design-patterns', type: 'documentation' },
+      { title: 'Head First Design Patterns', url: 'https://www.oreilly.com/library/view/head-first-design/0596007124/', type: 'article' },
+    ],
+  },
+  {
+    name: 'System Design',
+    category: 'Systems & Architecture',
+    difficulty: 'Advanced',
+    estimatedHours: 35,
+    description: 'High-level and low-level system design principles, microservices, load balancing, caching, and scalability.',
+    subtopics: [
+      { id: 'horizontal-vertical-scaling', name: 'Horizontal vs Vertical Scaling, Load Balancers' },
+      { id: 'caching-strategies', name: 'Caching (Redis, Memcached, Write-through vs Write-back)' },
+      { id: 'db-scaling', name: 'DB Replication, Sharding, Federation, Master-Slave' },
+      { id: 'message-queues', name: 'Asynchronous Processing (Kafka, RabbitMQ, SQS)' },
+      { id: 'rate-limiting', name: 'Rate Limiting Algorithms (Token Bucket, Leaky Bucket)' },
+      { id: 'cdn-storage', name: 'CDNs, Blob Storage (S3), Consistent Hashing' },
+      { id: 'lld-case-studies', name: 'Low-Level Design (Parking Lot, Tic-Tac-Toe, Elevator)' },
+      { id: 'hld-case-studies', name: 'High-Level Design (URL Shortener, WhatsApp, Netflix, Twitter)' },
+    ],
+    interviewFocus: [
+      'Design a URL Shortener (Bitly)',
+      'Design a Rate Limiter',
+      'Explain Consistent Hashing and why it is used in distributed caches',
+      'How to handle cache stampede and cache penetration?',
+      'Microservices vs Monolithic architecture comparison',
+    ],
+    resources: [
+      { title: 'System Design Primer (GitHub)', url: 'https://github.com/donnemartin/system-design-primer', type: 'documentation' },
+      { title: 'Grokking the System Design Interview', url: 'https://www.educative.io/', type: 'article' },
+      { title: 'ByteByteGo System Design (YouTube)', url: 'https://www.youtube.com/@ByteByteGo', type: 'video' },
+    ],
+  },
+  {
+    name: 'Software Engineering',
+    category: 'Software & Development',
+    difficulty: 'Beginner',
+    estimatedHours: 20,
+    description: 'SDLC models, Agile/Scrum methodologies, automated testing (unit, integration, e2e), and clean code standards.',
+    subtopics: [
+      { id: 'sdlc-models', name: 'SDLC Phases, Waterfall, Agile, Scrum & Sprint Cycles' },
+      { id: 'testing-levels', name: 'Testing Pyramid: Unit, Integration, Regression, E2E' },
+      { id: 'tdd-bdd', name: 'Test-Driven Development (TDD) & Behavior-Driven Development' },
+      { id: 'clean-code', name: 'Clean Code, DRY, KISS, Code Smells & Refactoring' },
+      { id: 'ci-cd-pipelines', name: 'Continuous Integration / Continuous Deployment (CI/CD)' },
+      { id: 'documentation-api', name: 'API Documentation (Swagger/OpenAPI), Postman testing' },
+    ],
+    interviewFocus: [
+      'Agile vs Waterfall comparison and ceremonies in Scrum',
+      'Explain the Testing Pyramid and why unit tests should outnumber E2E',
+      'What is Test-Driven Development (Red-Green-Refactor cycle)?',
+      'Code quality review standards and technical debt management',
+    ],
+    resources: [
+      { title: 'Martin Fowler Architecture & Agile Articles', url: 'https://martinfowler.com/', type: 'article' },
+      { title: 'Agile Manifesto', url: 'https://agilemanifesto.org/', type: 'documentation' },
+    ],
+  },
+  {
+    name: 'Compiler Design',
+    category: 'Core Foundations',
+    difficulty: 'Advanced',
+    estimatedHours: 25,
+    description: 'Phases of compilation: lexical analysis, parsing, intermediate code generation, and code optimization.',
+    subtopics: [
+      { id: 'lexical-analysis', name: 'Lexical Analysis, Tokens, Lex/Flex, Regular Expressions' },
+      { id: 'syntax-analysis', name: 'Parsing: LL(1), LR(0), SLR(1), LALR, Shift-Reduce' },
+      { id: 'syntax-directed', name: 'Syntax-Directed Translation, Parse Trees & ASTs' },
+      { id: 'symbol-tables', name: 'Symbol Table Organization & Type Checking' },
+      { id: 'intermediate-code', name: 'Three-Address Code (TAC), Quadruples, Triples' },
+      { id: 'code-optimization', name: 'Dead Code Elimination, Common Subexpression, Loop Unrolling' },
+    ],
+    interviewFocus: [
+      'Difference between Compiler and Interpreter',
+      'Top-Down vs Bottom-Up parsing techniques',
+      'What is an Abstract Syntax Tree (AST)?',
+      'Techniques for compiler code optimization',
+    ],
+    resources: [
+      { title: 'Dragon Book (Compilers: Principles, Techniques, & Tools)', url: 'https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools', type: 'article' },
+      { title: 'NPTEL Compiler Design Lectures', url: 'https://nptel.ac.in/courses/106108052', type: 'video' },
+    ],
+  },
+  {
+    name: 'Theory of Computation',
+    category: 'Core Foundations',
+    difficulty: 'Advanced',
+    estimatedHours: 25,
+    description: 'Automata theory, regular and context-free languages, Turing machines, decidability, and complexity classes (P vs NP).',
+    subtopics: [
+      { id: 'finite-automata', name: 'DFA, NFA, ε-NFA and Conversions' },
+      { id: 'regular-expressions-pumping', name: 'Regular Grammars, Pumping Lemma for Regular Languages' },
+      { id: 'context-free-languages', name: 'CFGs, Pushdown Automata (PDA), Ambiguity' },
+      { id: 'turing-machines', name: 'Turing Machines, Church-Turing Thesis' },
+      { id: 'decidability-halting', name: 'Decidability, Halting Problem, Rice’s Theorem' },
+      { id: 'p-np-classes', name: 'P, NP, NP-Complete (3-SAT), NP-Hard' },
+    ],
+    interviewFocus: [
+      'State the Halting Problem and explain why it is undecidable',
+      'Explain P vs NP problem in simple terms',
+      'How to test whether a language is regular using Pumping Lemma',
+      'Difference between DFA and NFA in power and computation',
+    ],
+    resources: [
+      { title: 'Michael Sipser - Introduction to the Theory of Computation', url: 'https://en.wikipedia.org/wiki/Introduction_to_the_Theory_of_Computation', type: 'article' },
+      { title: 'Gate Smashers TOC Playlist', url: 'https://www.youtube.com/playlist?list=PLxCzCOWd7aiFM9Lj5G9G_76adtyb4ef6i', type: 'video' },
+    ],
+  },
+  {
+    name: 'Machine Learning Basics',
+    category: 'Emerging Tech',
+    difficulty: 'Intermediate',
+    estimatedHours: 30,
+    description: 'Foundations of supervised & unsupervised learning, model evaluation, neural networks, and modern AI/LLMs.',
+    subtopics: [
+      { id: 'supervised-learning', name: 'Linear/Logistic Regression, Decision Trees, Random Forests' },
+      { id: 'unsupervised-learning', name: 'K-Means Clustering, PCA (Dimensionality Reduction)' },
+      { id: 'model-evaluation', name: 'Precision, Recall, F1 Score, ROC-AUC, Bias-Variance Tradeoff' },
+      { id: 'neural-networks-basics', name: 'Perceptrons, Activation Functions, Backpropagation, Gradient Descent' },
+      { id: 'deep-learning-intro', name: 'CNNs, RNNs, Attention Mechanism, Transformers' },
+      { id: 'llm-fundamentals', name: 'Large Language Models, Embeddings, Prompt Engineering, RAG' },
+    ],
+    interviewFocus: [
+      'Explain Bias-Variance tradeoff with examples',
+      'Precision vs Recall: when is one preferred over the other?',
+      'How does Gradient Descent update model weights?',
+      'What are Overfitting and Underfitting, and how to combat them (Regularization)?',
+      'Explain the Transformer Attention mechanism at a high level',
+    ],
+    resources: [
+      { title: 'Andrew Ng Machine Learning Specialization (Coursera)', url: 'https://www.coursera.org/specializations/machine-learning-introduction', type: 'video' },
+      { title: 'Fast.ai Practical Deep Learning', url: 'https://course.fast.ai/', type: 'practice' },
+      { title: 'StatQuest with Josh Starmer (YouTube)', url: 'https://www.youtube.com/@statquest', type: 'video' },
+    ],
+  },
+  {
+    name: 'Web Development',
+    category: 'Software & Development',
+    difficulty: 'Beginner',
+    estimatedHours: 35,
+    description: 'Modern full-stack web engineering: HTML5, CSS3, modern JavaScript/TypeScript, React, RESTful APIs, and state management.',
+    subtopics: [
+      { id: 'html-css-modern', name: 'Semantic HTML, CSS Flexbox/Grid, Responsive Design' },
+      { id: 'javascript-deep-dive', name: 'ES6+, Closures, Event Loop, Promises, Async/Await' },
+      { id: 'react-fundamentals', name: 'React Components, Hooks (useState, useEffect, useMemo), Props' },
+      { id: 'state-management', name: 'State Management (Context API, Redux Toolkit, Zustand)' },
+      { id: 'backend-apis', name: 'Node.js, Express, REST API Best Practices, Middleware' },
+      { id: 'web-security-basics', name: 'CORS, XSS, CSRF, JWT Authentication, HTTPS' },
+    ],
+    interviewFocus: [
+      'Explain the JavaScript Event Loop (Call Stack, Task Queue, Microtasks)',
+      'Difference between == and ===, and how closures work',
+      'How does React Virtual DOM and reconciliation work?',
+      'What is CORS and how do you configure it securely?',
+      'How to prevent XSS and CSRF attacks in a web application?',
+    ],
+    resources: [
+      { title: 'MDN Web Docs', url: 'https://developer.mozilla.org/', type: 'documentation' },
+      { title: 'React Documentation (react.dev)', url: 'https://react.dev/', type: 'documentation' },
+      { title: 'javascript.info', url: 'https://javascript.info/', type: 'article' },
+    ],
+  },
+  {
+    name: 'Git & Version Control',
+    category: 'Software & Development',
+    difficulty: 'Beginner',
+    estimatedHours: 15,
+    description: 'Version control workflows, branching models, merge conflict resolution, rebase, and collaborative GitHub best practices.',
+    subtopics: [
+      { id: 'git-fundamentals', name: 'Git Architecture: Working Directory, Staging, Local & Remote Repos' },
+      { id: 'branching-merging', name: 'Branching Strategies, Git Flow, Fast-Forward vs Three-Way Merge' },
+      { id: 'merge-conflicts', name: 'Resolving Merge Conflicts & Rebasing (git rebase -i)' },
+      { id: 'advanced-git-commands', name: 'git stash, cherry-pick, reset vs revert, reflog' },
+      { id: 'github-collaboration', name: 'Pull Requests, Code Reviews, Forking, Issues, GitHub Actions' },
+    ],
+    interviewFocus: [
+      'Difference between `git merge` and `git rebase`',
+      'Difference between `git reset --hard` and `git revert`',
+      'How does Git store file snapshots internally (Blobs, Trees, Commits)?',
+      'What to do if you committed sensitive credentials to a repo?',
+    ],
+    resources: [
+      { title: 'Pro Git Book (Free)', url: 'https://git-scm.com/book/en/v2', type: 'documentation' },
+      { title: 'Learn Git Branching (Interactive)', url: 'https://learngitbranching.js.org/', type: 'practice' },
+    ],
+  },
+  {
+    name: 'Cloud Computing',
+    category: 'Emerging Tech',
+    difficulty: 'Intermediate',
+    estimatedHours: 25,
+    description: 'Cloud service models (IaaS, PaaS, Serverless), AWS/Azure basics, containerization with Docker, and Kubernetes orchestration.',
+    subtopics: [
+      { id: 'cloud-models', name: 'IaaS, PaaS, SaaS, Public vs Private vs Hybrid Cloud' },
+      { id: 'core-aws-services', name: 'Compute (EC2, Lambda), Storage (S3, EBS), Networking (VPC)' },
+      { id: 'docker-containers', name: 'Docker Images, Dockerfile, Containerization, Docker Compose' },
+      { id: 'kubernetes-basics', name: 'Kubernetes Pods, Deployments, Services, Ingress' },
+      { id: 'serverless-edge', name: 'Serverless Functions, Cold Starts, Edge Computing' },
+      { id: 'cloud-security-iam', name: 'IAM Roles, Policies, Security Groups, Secrets Management' },
+    ],
+    interviewFocus: [
+      'Virtual Machines vs Docker Containers comparison',
+      'What is Serverless architecture and when to use it?',
+      'Explain AWS S3 storage classes and IAM role least-privilege',
+      'What is Kubernetes and why is container orchestration needed?',
+    ],
+    resources: [
+      { title: 'AWS Skill Builder & Free Tier Docs', url: 'https://aws.amazon.com/training/', type: 'documentation' },
+      { title: 'Docker Official Getting Started', url: 'https://docs.docker.com/get-started/', type: 'documentation' },
+      { title: 'Nana Janashia DevOps/Kubernetes (YouTube)', url: 'https://www.youtube.com/@TechWorldwithNana', type: 'video' },
+    ],
+  },
+  {
+    name: 'Cybersecurity Fundamentals',
+    category: 'Emerging Tech',
+    difficulty: 'Intermediate',
+    estimatedHours: 20,
+    description: 'Principles of information security, CIA triad, OWASP Top 10 vulnerabilities, authentication standards, and network security.',
+    subtopics: [
+      { id: 'cia-triad', name: 'Confidentiality, Integrity, Availability (CIA Triad)' },
+      { id: 'owasp-top-10', name: 'OWASP Top 10 (SQL Injection, XSS, Broken Auth, SSRF)' },
+      { id: 'cryptography-basics', name: 'Hashing (SHA256, bcrypt) vs Symmetric & Asymmetric Encryption (RSA, AES)' },
+      { id: 'auth-tokens', name: 'Authentication vs Authorization, OAuth 2.0, OpenID Connect, JWT' },
+      { id: 'security-best-practices', name: 'HTTPS, Salted Passwords, Rate Limiting, Zero Trust Architecture' },
+    ],
+    interviewFocus: [
+      'What is SQL Injection and how do Prepared Statements prevent it?',
+      'Difference between Encryption, Hashing, and Encoding',
+      'How does OAuth 2.0 authorization code flow work?',
+      'Explain the CIA Triad with real-world examples',
+    ],
+    resources: [
+      { title: 'OWASP Top 10 Documentation', url: 'https://owasp.org/www-project-top-ten/', type: 'documentation' },
+      { title: 'PortSwigger Web Security Academy (Free)', url: 'https://portswigger.net/web-security', type: 'practice' },
+    ],
+  },
+];

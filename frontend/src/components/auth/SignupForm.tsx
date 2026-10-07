@@ -18,6 +18,7 @@ export default function SignupForm() {
   const [rollNo, setRollNo] = useState('');
   const [startYear, setStartYear] = useState('');
   const [endYear, setEndYear] = useState('');
+  const [email, setEmail] = useState('');
   const [githubUsername, setGithubUsername] = useState('');
   const [leetcodeUsername, setLeetcodeUsername] = useState('');
 
@@ -92,6 +93,11 @@ export default function SignupForm() {
     e.preventDefault();
     setError('');
 
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -135,6 +141,7 @@ export default function SignupForm() {
       await signup({
         username,
         password,
+        email: email.trim(),
         rollNo: rollNo || undefined,
         startYear: parseInt(startYear),
         endYear: parseInt(endYear),
@@ -152,6 +159,15 @@ export default function SignupForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 px-4 py-8">
       <div className="glass-card max-w-md w-full p-8 rounded-2xl shadow-2xl">
+        <div className="mb-4">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline"
+          >
+            <span>← Back to Home</span>
+          </Link>
+        </div>
+
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold gradient-text mb-2">Create Account</h1>
           <p className="text-gray-600 dark:text-gray-400">Join placement readiness platform</p>
@@ -195,6 +211,18 @@ export default function SignupForm() {
                 required
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 placeholder="Choose a username"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address *</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                placeholder="student@example.com"
               />
             </div>
 

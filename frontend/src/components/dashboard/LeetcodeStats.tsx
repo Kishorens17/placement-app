@@ -70,7 +70,7 @@ export default function LeetcodeStats() {
         <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
           <p className="text-red-600 dark:text-red-400">{error}</p>
           <button
-            onClick={fetchLeetcodeStats}
+            onClick={() => fetchLeetcodeStats()}
             className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
           >
             Retry

@@ -48,11 +48,15 @@ export async function validateGithub(req: Request, res: Response) {
 
 export async function signup(req: Request, res: Response) {
   try {
-    const { username, password, rollNo, startYear, endYear, githubUsername, leetcodeUsername } = req.body;
+    const { username, password, rollNo, startYear, endYear, githubUsername, leetcodeUsername, email } = req.body;
 
     // Validate required fields
     if (!username || !password || !startYear || !endYear || !githubUsername || !leetcodeUsername) {
       return res.status(400).json({ error: 'All required fields must be provided' });
+    }
+
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return res.status(400).json({ error: 'Please provide a valid email address' });
     }
 
     const cleanGithub = sanitizeGithubUsername(githubUsername);
@@ -84,22 +88,35 @@ export async function signup(req: Request, res: Response) {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create user
-    const { data: newUser, error } = await supabase
+    // Create user payload
+    const insertPayload: any = {
+      username,
+      password_hash: passwordHash,
+      roll_no: rollNo,
+      start_year: startYear,
+      end_year: endYear,
+      github_username: cleanGithub,
+      leetcode_username: cleanLeetcode,
+    };
+
+    if (email) insertPayload.email = email.trim();
+
+    let { data: newUser, error } = await supabase
       .from('users')
-      .insert({
-        username,
-        password_hash: passwordHash,
-        roll_no: rollNo,
-        start_year: startYear,
-        end_year: endYear,
-        github_username: cleanGithub,
-        leetcode_username: cleanLeetcode,
-      })
+      .insert(insertPayload)
       .select()
       .single();
 
-    if (error) {
+    // Fallback if email column is not yet migrated in Supabase users table
+    if (error && (error.message?.includes('email') || (error as any).code === '42703')) {
+      console.warn('Column email not yet added in Supabase users table. Falling back to core fields.');
+      delete insertPayload.email;
+      const retry = await supabase.from('users').insert(insertPayload).select().single();
+      newUser = retry.data;
+      error = retry.error;
+    }
+
+    if (error || !newUser) {
       console.error('Supabase error:', error);
       return res.status(500).json({ error: 'Failed to create user' });
     }
@@ -118,6 +135,7 @@ export async function signup(req: Request, res: Response) {
       user: {
         id: newUser.id,
         username: newUser.username,
+        email: newUser.email || email?.trim() || undefined,
         rollNo: newUser.roll_no,
         startYear: newUser.start_year,
         endYear: newUser.end_year,
@@ -170,6 +188,7 @@ export async function login(req: Request, res: Response) {
       user: {
         id: user.id,
         username: user.username,
+        email: user.email,
         rollNo: user.roll_no,
         startYear: user.start_year,
         endYear: user.end_year,

@@ -7,6 +7,7 @@ export interface User {
   end_year: number;
   github_username: string;
   leetcode_username: string;
+  email?: string;
   created_at: string;
   updated_at: string;
 }

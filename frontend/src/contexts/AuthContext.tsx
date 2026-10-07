@@ -4,19 +4,36 @@ import type { User, AuthContextType, SignupData } from '../types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// ── Session-only storage helpers ──────────────────────────────────
+// Using sessionStorage so the session clears when the browser/tab is closed.
+// This ensures the user is always on the landing page on a fresh start.
+const store = {
+  get: (key: string) => sessionStorage.getItem(key) || localStorage.getItem(key),
+  set: (key: string, value: string) => sessionStorage.setItem(key, value),
+  remove: (key: string) => {
+    sessionStorage.removeItem(key);
+    localStorage.removeItem(key);
+  },
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing token on mount
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    // Restore session from sessionStorage (cleared on browser close)
+    const storedToken = store.get('token');
+    const storedUser = store.get('user');
 
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      } catch {
+        store.remove('token');
+        store.remove('user');
+      }
     }
     setIsLoading(false);
   }, []);
@@ -28,8 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setToken(newToken);
       setUser(newUser);
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      store.set('token', newToken);
+      store.set('user', JSON.stringify(newUser));
     } catch (error: any) {
       throw new Error(error.response?.data?.error || 'Login failed');
     }
@@ -42,8 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setToken(newToken);
       setUser(newUser);
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      store.set('token', newToken);
+      store.set('user', JSON.stringify(newUser));
     } catch (error: any) {
       throw new Error(error.response?.data?.error || 'Signup failed');
     }
@@ -52,8 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    store.remove('token');
+    store.remove('user');
   };
 
   return (

@@ -20,6 +20,7 @@ export default function GithubStats() {
   const fetchGithubStats = async () => {
     try {
       setLoading(true);
+      setError('');
       const response = await api.get('/github/stats');
       setData(response.data);
     } catch (err: any) {

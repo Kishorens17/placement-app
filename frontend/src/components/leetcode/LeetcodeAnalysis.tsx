@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import api from '../../services/api';
+import LeetcodeRadarChart from './LeetcodeRadarChart';
+import { LEETCODE_DOMAINS, getUnsolvedEasyProblems } from '../../utils/leetcodeProblemsData';
 
 interface LeetcodeStatsData {
   totalSolved: number;
@@ -34,19 +36,6 @@ interface MonthlyTargetData {
   aiReasoning?: string;
 }
 
-const CORE_DSA_TOPICS = [
-  { name: 'Arrays', tag: 'array', icon: '📊', color: 'from-blue-500 to-cyan-500' },
-  { name: 'Strings', tag: 'string', icon: '🔤', color: 'from-cyan-500 to-teal-500' },
-  { name: 'Dynamic Programming', tag: 'dynamic-programming', icon: '🧠', color: 'from-purple-500 to-indigo-500' },
-  { name: 'Trees & BST', tag: 'tree', icon: '🌳', color: 'from-emerald-500 to-green-500' },
-  { name: 'Graphs & BFS/DFS', tag: 'graph', icon: '🕸️', color: 'from-amber-500 to-orange-500' },
-  { name: 'Binary Search', tag: 'binary-search', icon: '🔍', color: 'from-rose-500 to-pink-500' },
-  { name: 'Sliding Window & Two Pointers', tag: 'sliding-window', icon: '🪟', color: 'from-violet-500 to-purple-600' },
-  { name: 'Heap / Priority Queue', tag: 'heap-priority-queue', icon: '🏔️', color: 'from-indigo-500 to-blue-600' },
-  { name: 'Stacks & Queues', tag: 'stack', icon: '🥞', color: 'from-teal-500 to-emerald-600' },
-  { name: 'Linked Lists', tag: 'linked-list', icon: '🔗', color: 'from-blue-600 to-indigo-700' },
-];
-
 export default function LeetcodeAnalysis() {
   const [stats, setStats] = useState<LeetcodeStatsData | null>(null);
   const [weeklyTarget, setWeeklyTarget] = useState<WeeklyTargetData | null>(null);
@@ -54,6 +43,11 @@ export default function LeetcodeAnalysis() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [selectedTopicTag, setSelectedTopicTag] = useState<string>('array');
+
+  const topicRecommendation = useMemo(() => {
+    return getUnsolvedEasyProblems(selectedTopicTag, stats?.solvedProblems || [], 3);
+  }, [selectedTopicTag, stats?.solvedProblems]);
 
   const loadData = async (forceRefresh = false) => {
     try {
@@ -362,43 +356,212 @@ export default function LeetcodeAnalysis() {
         </div>
       </div>
 
-      {/* DSA Topic Quick Practice Hub */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">📚</span>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Core DSA Topic Hub
-            </h2>
+      {/* Radar Graph Visualization & Domain Balance Index */}
+      <LeetcodeRadarChart
+        solvedProblems={stats?.solvedProblems || []}
+        conceptStats={stats?.conceptStats || {}}
+        selectedTag={selectedTopicTag}
+        onSelectTopic={(tag) => setSelectedTopicTag(tag)}
+      />
+
+      {/* Concept-Wise Capacity & Unsolved Problem Recommender */}
+      <div className="glass-card p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🎯</span>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Concept-Wise Capacity & Starter Recommendations
+              </h2>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Select a domain below to see how many problems you can solve and get 3 high-yield, very easy unsolved problems.
+            </p>
           </div>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            Click any topic to practice directly on LeetCode
+          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+            ✓ Excludes Problems You've Already Solved
           </span>
         </div>
 
+        {/* Domain Selection Tabs with Problem Counts */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {CORE_DSA_TOPICS.map((topic, i) => (
-            <a
-              key={i}
-              href={`https://leetcode.com/tag/${topic.tag}/`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass-card p-4 rounded-xl border border-gray-200 dark:border-gray-700/60 hover:shadow-lg hover:scale-[1.02] transition-all group flex flex-col justify-between"
-            >
-              <div>
-                <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">
-                  {topic.icon}
+          {LEETCODE_DOMAINS.map((domain) => {
+            const isSelected = selectedTopicTag === domain.tag;
+            const solvedSet = new Set((stats?.solvedProblems || []).map((s) => s.toLowerCase().trim()));
+            const countSolved = domain.problems.filter((p) => solvedSet.has(p.slug.toLowerCase())).length;
+            const target = domain.benchmarkTarget;
+            const pct = Math.min(100, Math.round((countSolved / target) * 100));
+
+            return (
+              <button
+                key={domain.tag}
+                onClick={() => setSelectedTopicTag(domain.tag)}
+                className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                  isSelected
+                    ? 'bg-purple-50 dark:bg-purple-950/60 border-purple-500 shadow-md ring-2 ring-purple-500/20'
+                    : 'glass-card border-gray-200 dark:border-gray-800 hover:border-purple-300 dark:hover:border-purple-700/60'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xl">{domain.icon}</span>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      isSelected
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                    }`}
+                  >
+                    {countSolved}/{target}
+                  </span>
                 </div>
-                <h4 className="font-semibold text-xs text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                  {topic.name}
-                </h4>
-              </div>
-              <span className="mt-3 text-[10px] font-bold text-purple-600 dark:text-purple-400 flex items-center gap-0.5">
-                Practice ↗
-              </span>
-            </a>
-          ))}
+
+                <div className="text-xs font-bold text-gray-900 dark:text-white truncate mb-2">
+                  {domain.name}
+                </div>
+
+                {/* Micro progress bar */}
+                <div className="w-full bg-gray-200 dark:bg-gray-700 h-1 rounded-full overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full transition-all duration-300"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </button>
+            );
+          })}
         </div>
+
+        {/* Selected Domain Showcase & Unsolved Recommendations */}
+        {topicRecommendation && (
+          <div className="bg-gradient-to-br from-purple-50/50 via-indigo-50/30 to-blue-50/20 dark:from-purple-950/20 dark:via-gray-800/40 dark:to-blue-950/20 p-6 rounded-2xl border border-purple-200/70 dark:border-purple-900/40 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-100 dark:border-purple-900/30 pb-4">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-purple-100 dark:border-purple-900/50">
+                  {topicRecommendation.domain.icon}
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                      {topicRecommendation.domain.name}
+                    </h3>
+                    <span className="text-xs px-2.5 py-0.5 bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-semibold rounded-full">
+                      Placement Target: {topicRecommendation.domain.benchmarkTarget} problems
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    {topicRecommendation.domain.description}
+                  </p>
+                </div>
+              </div>
+
+              <div className="shrink-0 text-right">
+                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                  Verified In Domain
+                </div>
+                <div className="text-2xl font-black text-purple-600 dark:text-purple-400 font-mono">
+                  {topicRecommendation.totalSolvedInDomain}{' '}
+                  <span className="text-xs text-gray-400 font-normal">solved</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 3 High-Yield Unsolved Easy Problems */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">⚡</span>
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                    3 Very Easy Unsolved Problems For You
+                  </h4>
+                </div>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Tailored to kickstart your momentum
+                </span>
+              </div>
+
+              {topicRecommendation.recommended.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {topicRecommendation.recommended.map((problem) => (
+                    <div
+                      key={problem.slug}
+                      className="glass-card p-5 rounded-xl border border-gray-200 dark:border-gray-700/70 hover:border-purple-400 dark:hover:border-purple-600 hover:shadow-lg transition-all flex flex-col justify-between group"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-mono font-bold text-gray-400 dark:text-gray-500">
+                            #{problem.id}
+                          </span>
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">
+                            Easy
+                          </span>
+                        </div>
+
+                        <h5 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors mb-2">
+                          {problem.title}
+                        </h5>
+
+                        <div className="space-y-1.5 text-xs mb-4">
+                          <div className="flex items-center justify-between text-gray-500 dark:text-gray-400">
+                            <span>Acceptance:</span>
+                            <span className="font-semibold text-gray-700 dark:text-gray-300 font-mono">
+                              {problem.acceptance}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-gray-500 dark:text-gray-400">
+                            <span>Key Pattern:</span>
+                            <span className="font-semibold text-purple-600 dark:text-purple-400">
+                              {problem.keyConcept}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <a
+                        href={`https://leetcode.com/problems/${problem.slug}/`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg text-center shadow transition-all flex items-center justify-center gap-1.5 group-hover:scale-[1.02]"
+                      >
+                        <span>Solve on LeetCode</span>
+                        <span>↗</span>
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-6 text-center rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                  <span className="text-3xl mb-2 block">🎉</span>
+                  <div className="font-bold text-emerald-800 dark:text-emerald-300 text-sm">
+                    Incredible! You have solved all starter problems in this domain!
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    You're ready to tackle Medium-difficulty problems in {topicRecommendation.domain.name}.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Direct Link to Complete Domain Library */}
+            <div className="pt-2">
+              <a
+                href={`https://leetcode.com/tag/${topicRecommendation.domain.tag}/`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">📚</span>
+                  <span>
+                    Explore All {topicRecommendation.domain.name} Problems on LeetCode Tag Hub
+                  </span>
+                </div>
+                <span className="text-xs font-semibold px-3 py-1 bg-white/20 rounded-full group-hover:translate-x-1 transition-transform">
+                  View Full Library ↗
+                </span>
+              </a>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Recently Solved Problems List */}

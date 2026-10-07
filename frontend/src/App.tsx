@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
@@ -9,6 +10,8 @@ import GithubPage from './pages/GithubPage';
 import LeetcodePage from './pages/LeetcodePage';
 import RoadmapPage from './pages/RoadmapPage';
 import ChatbotPage from './pages/ChatbotPage';
+import QuizPage from './pages/QuizPage';
+import ResumePage from './pages/ResumePage';
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -58,10 +61,7 @@ function App() {
       <AuthProvider>
         <Router>
           <Routes>
-            <Route
-              path="/"
-              element={<Navigate to="/login" replace />}
-            />
+            <Route path="/" element={<LandingPage />} />
             <Route
               path="/login"
               element={
@@ -95,6 +95,14 @@ function App() {
               }
             />
             <Route
+              path="/github/analysis/:repoName"
+              element={
+                <ProtectedRoute>
+                  <GithubPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/leetcode"
               element={
                 <ProtectedRoute>
@@ -118,6 +126,23 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/resume"
+              element={
+                <ProtectedRoute>
+                  <ResumePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/quiz/:subject"
+              element={
+                <ProtectedRoute>
+                  <QuizPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
       </AuthProvider>
