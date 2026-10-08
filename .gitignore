@@ -43,3 +43,8 @@ ehthumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Report & academic project artifacts
+report/
+*.zip
+sample workflow.png
