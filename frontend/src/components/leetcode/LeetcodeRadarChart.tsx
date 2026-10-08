@@ -1,48 +1,90 @@
 import { useState, useMemo } from 'react';
 import { LEETCODE_DOMAINS } from '../../utils/leetcodeProblemsData';
 
+interface SkillTagItem {
+  tagName: string;
+  tagSlug: string;
+  problemsSolved: number;
+}
+
 interface RadarChartProps {
   solvedProblems: string[];
   conceptStats?: Record<string, { solved: number; total: number }>;
+  skills?: {
+    fundamental?: SkillTagItem[];
+    intermediate?: SkillTagItem[];
+    advanced?: SkillTagItem[];
+    tagCounts?: Record<string, number>;
+  };
   onSelectTopic?: (tag: string) => void;
   selectedTag?: string;
 }
 
+const PRIMARY_RADAR_TOPICS = [
+  { name: 'Array', tag: 'array', icon: '📊', category: 'Fundamental' },
+  { name: 'String', tag: 'string', icon: '🔤', category: 'Fundamental' },
+  { name: 'Hash Table', tag: 'hash-table', icon: '🗄️', category: 'Intermediate' },
+  { name: 'Two Pointers', tag: 'two-pointers', icon: '👉', category: 'Fundamental' },
+  { name: 'Sorting', tag: 'sorting', icon: '🔄', category: 'Fundamental' },
+  { name: 'Linked List', tag: 'linked-list', icon: '🔗', category: 'Fundamental' },
+  { name: 'Tree & BST', tag: 'tree', icon: '🌳', category: 'Intermediate' },
+  { name: 'Binary Search', tag: 'binary-search', icon: '🔍', category: 'Intermediate' },
+  { name: 'Dynamic Programming', tag: 'dynamic-programming', icon: '📈', category: 'Advanced' },
+  { name: 'Math', tag: 'math', icon: '🔢', category: 'Intermediate' },
+];
+
 export default function LeetcodeRadarChart({
   solvedProblems = [],
   conceptStats = {},
+  skills,
   onSelectTopic,
   selectedTag,
 }: RadarChartProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // We evaluate 8 primary axes for a clear, readable spider radar
+  // Evaluate primary interview axes using original LeetCode solved counts
   const radarAxes = useMemo(() => {
     const solvedSet = new Set(solvedProblems.map((s) => s.toLowerCase().trim()));
+    const tagCounts = skills?.tagCounts || {};
 
-    return LEETCODE_DOMAINS.slice(0, 8).map((domain) => {
-      // Direct count from user's verified solvedProblems matching this domain catalog
-      const catalogSolved = domain.problems.filter((p) => solvedSet.has(p.slug.toLowerCase())).length;
+    const rawAxes = PRIMARY_RADAR_TOPICS.map((topic) => {
+      // 1. Direct verified count from LeetCode tag counts (alfa-leetcode-api / skillStats)
+      let directCount = 0;
+      if (topic.name === 'Tree & BST') {
+        directCount = (tagCounts['Tree'] || tagCounts['tree'] || 0) + (tagCounts['Binary Tree'] || tagCounts['binary-tree'] || 0);
+      } else {
+        directCount = tagCounts[topic.name] ?? tagCounts[topic.tag] ?? 0;
+      }
 
-      // Also check conceptStats from backend if available
-      const fromBackend = conceptStats[domain.name]?.solved || 0;
+      // 2. Check conceptStats from backend or fallback to catalog
+      const fromBackend = conceptStats[topic.name]?.solved || 0;
+      const matchedDomain = LEETCODE_DOMAINS.find((d) => d.tag === topic.tag || d.name.toLowerCase().includes(topic.name.toLowerCase()));
+      const catalogSolved = matchedDomain ? matchedDomain.problems.filter((p) => solvedSet.has(p.slug.toLowerCase())).length : 0;
 
-      // We combine to give a fair representation
-      const effectiveSolved = Math.max(catalogSolved, fromBackend);
-      const target = domain.benchmarkTarget;
-      const ratio = Math.min(1, Math.max(0.08, effectiveSolved / target)); // minimum 0.08 so point is slightly visible
+      const effectiveSolved = Math.max(directCount, fromBackend, catalogSolved);
 
       return {
-        name: domain.name,
-        tag: domain.tag,
-        icon: domain.icon,
+        name: topic.name,
+        tag: topic.tag,
+        icon: topic.icon,
+        category: topic.category,
         solved: effectiveSolved,
-        target,
-        ratio,
-        percentage: Math.round((effectiveSolved / target) * 100),
       };
     });
-  }, [solvedProblems, conceptStats]);
+
+    // Dynamic scale based on user's highest solved topic (no hardcoded 25 cap)
+    const maxVal = Math.max(...rawAxes.map((a) => a.solved), 15);
+
+    return rawAxes.map((axis) => {
+      const ratio = Math.min(1, Math.max(0.08, axis.solved / maxVal));
+      return {
+        ...axis,
+        maxScale: maxVal,
+        ratio,
+        percentage: Math.round((axis.solved / maxVal) * 100),
+      };
+    });
+  }, [solvedProblems, conceptStats, skills]);
 
   // Compute Domain Balance Index (0 - 100%)
   const { balanceScore, balanceLabel, balanceAdvice } = useMemo(() => {
@@ -57,8 +99,6 @@ export default function LeetcodeRadarChart({
     // Uniformity factor: 1 when all ratios are equal, decreases as variance grows
     const uniformity = Math.max(0, 1 - (stdDev / (mean + 0.001)) * 0.7);
 
-    // Scale by overall completion mean:
-    // If student has solved problems across several topics uniformly, score approaches 100
     const rawScore = Math.round((mean * 0.6 + uniformity * 0.4) * 100);
     const score = Math.max(12, Math.min(100, rawScore));
 
@@ -315,10 +355,10 @@ export default function LeetcodeRadarChart({
               <span className="text-base">{radarAxes[hoveredIndex].icon}</span>
               <span className="font-semibold">{radarAxes[hoveredIndex].name}:</span>
               <span className="text-purple-300 font-bold">
-                {radarAxes[hoveredIndex].solved} / {radarAxes[hoveredIndex].target} solved
+                {radarAxes[hoveredIndex].solved} problems solved
               </span>
-              <span className="text-gray-400 font-mono">
-                ({radarAxes[hoveredIndex].percentage}%)
+              <span className="text-xs px-1.5 py-0.5 rounded bg-purple-900/80 text-purple-200">
+                {radarAxes[hoveredIndex].category}
               </span>
             </div>
           )}
@@ -337,8 +377,8 @@ export default function LeetcodeRadarChart({
 
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-semibold text-gray-500 dark:text-gray-400 px-1">
-              <span>Domain</span>
-              <span>Capacity Benchmark</span>
+              <span>Domain (alfa-leetcode-api)</span>
+              <span>LeetCode Solved</span>
             </div>
 
             <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
@@ -366,8 +406,8 @@ export default function LeetcodeRadarChart({
                           style={{ width: `${Math.min(100, axis.percentage)}%` }}
                         />
                       </div>
-                      <span className="font-mono text-[11px] min-w-[42px] text-right font-medium">
-                        {axis.solved}/{axis.target}
+                      <span className="font-mono text-[11px] min-w-[55px] text-right font-bold text-purple-600 dark:text-purple-400">
+                        {axis.solved} solved
                       </span>
                     </div>
                   </button>

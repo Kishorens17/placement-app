@@ -31,13 +31,23 @@ export async function getLeetcodeStatsController(req: AuthRequest, res: Response
     const cacheAge = cache ? (now.getTime() - new Date(cache.fetched_at).getTime()) / (1000 * 60 * 60) : 25;
 
     if (!forceRefresh && cache && cacheAge < 24) {
+      const cachedConceptStats = cache.concept_stats || {};
+      const skills = cachedConceptStats.skills || {
+        fundamental: [],
+        intermediate: [],
+        advanced: [],
+        tagCounts: {},
+      };
+      const concepts = cachedConceptStats.concepts || cachedConceptStats;
+
       return res.json({
         totalSolved: cache.total_solved,
         easySolved: cache.easy_solved,
         mediumSolved: cache.medium_solved,
         hardSolved: cache.hard_solved,
         lastSubmissionDate: cache.last_submission_date,
-        conceptStats: cache.concept_stats,
+        conceptStats: concepts,
+        skills,
         solvedProblems: cache.solved_problems,
         cached: true,
       });
@@ -46,11 +56,18 @@ export async function getLeetcodeStatsController(req: AuthRequest, res: Response
     // Fetch fresh data
     const stats = await getLeetcodeStats(user.leetcode_username);
 
-    // Initialize concept stats
+    // Initialize concept stats with actual problem counts from LeetCode
+    const tagCounts = stats.skills?.tagCounts || {};
     const conceptStats: Record<string, { solved: number; total: number }> = {};
     DSA_CONCEPTS.forEach(concept => {
-      conceptStats[concept] = { solved: 0, total: 10 }; // Assume 10 problems per concept
+      const actualSolved = tagCounts[concept] || tagCounts[concept.toLowerCase()] || 0;
+      conceptStats[concept] = { solved: actualSolved, total: stats.totalSolved };
     });
+
+    const combinedConceptStats = {
+      concepts: conceptStats,
+      skills: stats.skills,
+    };
 
     // Update cache
     await supabase
@@ -62,7 +79,7 @@ export async function getLeetcodeStatsController(req: AuthRequest, res: Response
         medium_solved: stats.mediumSolved,
         hard_solved: stats.hardSolved,
         last_submission_date: stats.lastSubmissionDate,
-        concept_stats: conceptStats,
+        concept_stats: combinedConceptStats,
         solved_problems: stats.solvedProblems,
         fetched_at: now.toISOString(),
       });
@@ -70,6 +87,7 @@ export async function getLeetcodeStatsController(req: AuthRequest, res: Response
     res.json({
       ...stats,
       conceptStats,
+      skills: stats.skills,
       cached: false,
     });
   } catch (error: any) {

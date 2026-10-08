@@ -1,0 +1,48 @@
+\chapter*{APPENDIX}
+\addcontentsline{toc}{chapter}{APPENDIX}
+
+\section*{Appendix A: Supabase PostgreSQL Database DDL}
+\begin{lstlisting}[language=SQL, caption={Core Database Tables DDL}]
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    is_verified BOOLEAN DEFAULT FALSE,
+    target_role VARCHAR(100) DEFAULT 'Full Stack Developer',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE github_analyses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    username VARCHAR(100) NOT NULL,
+    total_repos INT DEFAULT 0, total_stars INT DEFAULT 0,
+    languages JSONB DEFAULT '{}'::jsonb,
+    score NUMERIC(5,2) DEFAULT 0.0
+);
+
+CREATE TABLE leetcode_analyses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    username VARCHAR(100) NOT NULL,
+    easy_solved INT DEFAULT 0, medium_solved INT DEFAULT 0,
+    hard_solved INT DEFAULT 0, score NUMERIC(5,2) DEFAULT 0.0
+);
+
+CREATE TABLE quiz_attempts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    set_name VARCHAR(10) NOT NULL, score NUMERIC(5,2) NOT NULL,
+    violations INT DEFAULT 0, integrity_score NUMERIC(5,2) DEFAULT 100.0
+);
+\end{lstlisting}
+
+\section*{Appendix B: GitHub Repository and Setup Instructions}
+\noindent\textbf{GitHub Repository URL:} \url{https://github.com/Kishorens17/placement-app}
+
+\noindent\textbf{Local Setup Quickstart:}
+\begin{enumerate}
+    \item Clone repository: \texttt{git clone https://github.com/Kishorens17/placement-app.git}
+    \item Start backend: \texttt{cd backend \&\& npm install \&\& npm run dev} (Runs on port 3000)
+    \item Start frontend: \texttt{cd ../frontend \&\& npm install \&\& npm run dev} (Runs on port 5173)
+\end{enumerate}

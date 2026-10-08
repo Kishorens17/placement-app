@@ -1,0 +1,126 @@
+\chapter{IMPLEMENTATION}
+
+\section{Development Environment}
+PlacementPulse was built using a modern full-stack development environment. Table~\ref{tab:dev_environment} summarizes the primary development stack components.
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\caption{Development Stack and Environment Specifications}
+\label{tab:dev_environment}
+\begin{tabularx}{\textwidth}{l p{3.8cm} X}
+\toprule
+\textbf{Component Layer} & \textbf{Technology / Tool} & \textbf{Version / Description} \\
+\midrule
+Frontend Framework & React with TypeScript & React v18.3.1, TypeScript v5.5.3, Vite v5.4.2 \\
+Styling \& UI & TailwindCSS \& Lucide & Tailwind v3.4.10, Lucide-React, Recharts v2.12 \\
+Backend Runtime & Node.js \& Express & Node v20.18 LTS, Express v4.19, \texttt{tsx} v4.19 \\
+Database Cloud & Supabase PostgreSQL & PostgreSQL 15 cloud instance with RLS \\
+Document Parser & \texttt{pdf-parse} & v1.1.1 (In-memory PDF text extraction) \\
+AI Inference Gateway & OpenRouter API & Llama-3.3-70B, DeepSeek-Chat, Qwen-2.5-72B \\
+Email Delivery & Resend API & Transactional 6-digit OTP delivery \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Frontend Implementation}
+The client application is built with modular React components:
+\begin{itemize}
+    \item \textbf{QuizPortal (\texttt{QuizPortal.tsx}):} Manages test-taking state, 52-question navigation palettes, active countdown timers, and submission payloads.
+    \item \textbf{CanvasQuestion (\texttt{CanvasQuestion.tsx}):} Rasterizes question text and code blocks directly onto an HTML5 2D canvas context, inhibiting DOM inspection by AI browser extensions. Steganographic watermarks display candidate identifiers.
+    \item \textbf{ResumeUploader (\texttt{ResumeUploader.tsx}):} Implements drag-and-drop PDF ingestion, dynamic ATS score gauges, and color-coded skill chips.
+\end{itemize}
+
+\section{Backend Implementation}
+The Node.js/Express server implements asynchronous REST controllers:
+\begin{itemize}
+    \item \textbf{Portfolio Controllers:} Query GitHub REST v3 endpoints for repository and commit activity, and execute GraphQL queries against LeetCode's public endpoint.
+    \item \textbf{ATS Controller:} Ingests PDF buffers via Multer and \texttt{pdf-parse}, executing regular expression pattern matching against a curated database of 200+ industry skills.
+    \item \textbf{Quiz Controller:} Serves balanced 52-question sets (Sets A, B, C) and evaluates submissions against answer keys with blur violation logging.
+\end{itemize}
+
+\section{Database Implementation}
+Data persistence is handled by Supabase PostgreSQL utilizing standard CRUD operations:
+\begin{itemize}
+    \item \textbf{Create/Read:} User registration inserts with \texttt{is\_verified = false}. Login queries verify salted \texttt{bcrypt} hashes.
+    \item \textbf{Upsert:} Portfolio telemetry from GitHub and LeetCode is upserted upon re-analysis keyed on \texttt{user\_id}.
+    \item \textbf{Audit Logging:} Completed diagnostic test attempts insert immutable records into \texttt{quiz\_attempts}.
+\end{itemize}
+
+\section{Chatbot / AI Agent Implementation}
+The AI mentoring assistant incorporates an automated multi-model fallback chain designed for uninterrupted availability:
+\begin{enumerate}
+    \item \textbf{Priority Cascading:} Requests are dispatched first to \texttt{meta-llama/llama-3.3-70b-instruct}. Upon encountering HTTP 429 (rate limits) or timeouts ($>8$s), execution cascades to \texttt{deepseek/deepseek-chat}, and subsequently to \texttt{qwen/qwen-2.5-72b-instruct}.
+    \item \textbf{Pedagogical Prompting:} System prompts enforce Socratic tutoring, guiding students conceptually rather than revealing exam answers directly.
+\end{enumerate}
+
+\section{Full Stack Integration}
+The communication architecture follows a stateless client-server model: the React client attaches JWT bearer tokens via Axios request interceptors, Express controllers validate authentication and delegate to external services (GitHub, LeetCode, OpenRouter, Supabase), and structured responses update the client state and Recharts visualizations.
+
+\section{Important Code Snippets}
+The following curated code listings demonstrate the core implementations of canvas-based question obfuscation and multi-model AI routing.
+
+\begin{lstlisting}[language=JavaScript, caption={Canvas Question Renderer and Blur Proctoring Listener}, label={lst:canvas_anticheat}]
+// frontend/src/components/quiz/CanvasQuestion.tsx
+import React, { useEffect, useRef } from 'react';
+
+export const CanvasQuestion = ({ questionText, userEmail, onViolation }: any) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const handleBlur = () => onViolation();
+    window.addEventListener('blur', handleBlur);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) onViolation();
+    });
+    return () => window.removeEventListener('blur', handleBlur);
+  }, [onViolation]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = 800; canvas.height = 140;
+    ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, 800, 140);
+    ctx.fillStyle = '#f8fafc'; ctx.font = '600 15px Inter, sans-serif';
+    ctx.fillText(questionText, 25, 45);
+
+    // Steganographic security watermark
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+    ctx.font = '11px monospace';
+    ctx.fillText(`CANDIDATE: ${userEmail} | ${Date.now()}`, 25, 125);
+  }, [questionText, userEmail]);
+
+  return <canvas ref={canvasRef} style={{ width: '100%', borderRadius: '6px' }} />;
+};
+\end{lstlisting}
+
+\begin{lstlisting}[language=JavaScript, caption={Multi-Model Fallback AI Routing Service}, label={lst:ai_fallback}]
+// backend/src/services/aiRouter.ts
+const FALLBACK_MODELS = [
+  'meta-llama/llama-3.3-70b-instruct',
+  'deepseek/deepseek-chat',
+  'qwen/qwen-2.5-72b-instruct'
+];
+
+export async function generateMentorResponse(messages: any[]): Promise<string> {
+  for (const model of FALLBACK_MODELS) {
+    try {
+      const res = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+        model, messages, temperature: 0.6, max_tokens: 600
+      }, {
+        headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}` },
+        timeout: 8000
+      });
+      if (res.data?.choices?.[0]?.message?.content) {
+        return res.data.choices[0].message.content;
+      }
+    } catch (err: any) {
+      console.warn(`Model ${model} failed: ${err.message}. Cascading to fallback.`);
+    }
+  }
+  return 'AI Tutor is currently busy. Please review your core concepts.';
+}
+\end{lstlisting}

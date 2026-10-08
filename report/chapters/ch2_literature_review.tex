@@ -1,0 +1,54 @@
+\chapter{EXISTING SYSTEM AND DOMAIN STUDY}
+
+\section{Existing System}
+In the contemporary landscape of graduate recruitment and career training, a multitude of commercial and open-source platforms exist to assist candidates in technical skill evaluation:
+\begin{enumerate}
+    \item \textbf{Competitive Coding Platforms:} Platforms such as LeetCode and HackerRank provide algorithmic challenges executed in sandboxed environments.
+    \item \textbf{Portfolio Repositories:} Services like GitHub allow developers to showcase project repositories, commit histories, and open-source contributions.
+    \item \textbf{Standalone Resume Scanners:} Proprietary services like Jobscan and Resume Worded analyze user-submitted resumes against generic job postings.
+    \item \textbf{Learning Management Systems:} Portals such as Moodle and Mercer Mettl administer multiple-choice questionnaires for preliminary campus screening.
+\end{enumerate}
+
+\section{Limitations of Existing System}
+Although existing solutions serve specialized roles, their operational independence results in severe systemic deficiencies:
+\begin{itemize}
+    \item \textbf{Data Fragmentation:} Candidates must juggle disconnected portals with no unified mechanism to correlate coding metrics, GitHub hygiene, and resume quality into a single score.
+    \item \textbf{Superficial Resume Scoring:} Most ATS tools rely on rigid exact-string matching, penalizing synonymous technical terms and paywalling actionable feedback.
+    \item \textbf{Assessment Vulnerability:} Standard web-based mock tests lack client-side proctoring, allowing examinees to leverage browser AI extensions and clipboard shortcuts.
+    \item \textbf{Absence of Contextual Remediation:} Failed assessments yield simple percentage scores without an integrated pedagogical tutor to explain mistakes or generate tailored learning paths.
+\end{itemize}
+
+\section{Existing Technologies / Approaches}
+Existing talent assessment frameworks utilize disparate technical architectures. Algorithmic judges rely on isolated Dockerized sandboxes to enforce CPU/memory execution bounds. Resume parsers depend primarily on basic Python regular expressions or bag-of-words heuristics. Commercial proctoring tools deploy resource-intensive video surveillance that raises severe privacy concerns. Conversational AI tutors in educational tools typically connect to a single proprietary endpoint, suffering complete outage during vendor rate limits.
+
+\section{Proposed Improvement}
+To resolve these limitations, \textbf{PlacementPulse} introduces an integrated full-stack architecture that unifies portfolio ingestion, in-memory PDF parsing, canvas-based proctoring, and fault-tolerant AI orchestration. Table~\ref{tab:comparative_matrix} presents a comparative analysis contrasting PlacementPulse with existing platforms.
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\caption{Comparative Analysis: PlacementPulse vs. Existing Platforms}
+\label{tab:comparative_matrix}
+\begin{tabularx}{\textwidth}{l c c c c c}
+\toprule
+\textbf{Feature / Capability} & \textbf{LeetCode} & \textbf{GitHub} & \textbf{Jobscan} & \textbf{Moodle} & \textbf{PlacementPulse} \\
+\midrule
+Algorithmic Problem Profiling & \checkmark & $\times$ & $\times$ & Partial & \checkmark \\
+GitHub Version Control Hygiene & $\times$ & \checkmark & $\times$ & $\times$ & \checkmark \\
+ATS Semantic PDF Analysis & $\times$ & $\times$ & \checkmark & $\times$ & \checkmark \\
+Canvas Anti-Cheat Proctoring & $\times$ & $\times$ & $\times$ & Partial & \checkmark \\
+Multi-Model Fallback AI Tutor & $\times$ & $\times$ & $\times$ & $\times$ & \checkmark \\
+Unified Multi-Radar Dashboard & $\times$ & $\times$ & $\times$ & $\times$ & \checkmark \\
+Adaptive Remedial Roadmaps & $\times$ & $\times$ & $\times$ & $\times$ & \checkmark \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Novelty and Key Contribution}
+The distinct technical contributions and novel aspects of PlacementPulse are:
+\begin{enumerate}
+    \item \textbf{Unified Multi-Source Employability Index:} Synthesizes GitHub telemetry, LeetCode performance, parsed ATS resume data, and 52-question diagnostic test outcomes into a single composite score ($0-100$).
+    \item \textbf{Canvas-Based DOM Obfuscation for Anti-Cheating:} Renders examination statements directly onto an HTML5 2D Canvas context with dynamic watermarks and window blur tracking, preventing automated DOM scraping and unauthorized tab switching.
+    \item \textbf{Resilient Multi-Model LLM Gateway:} Implements an automated fallback chain across OpenRouter (Llama-3.3-70B $\rightarrow$ DeepSeek-Chat $\rightarrow$ Qwen-2.5-72B) guaranteeing high availability for pedagogical mentoring.
+    \item \textbf{Closed-Loop Remediation Pipeline:} Connects diagnostic test weaknesses directly to dynamic milestone-based learning roadmaps.
+\end{enumerate}

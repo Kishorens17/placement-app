@@ -3,6 +3,12 @@ import api from '../../services/api';
 import LeetcodeRadarChart from './LeetcodeRadarChart';
 import { LEETCODE_DOMAINS, getUnsolvedEasyProblems } from '../../utils/leetcodeProblemsData';
 
+interface SkillTagItem {
+  tagName: string;
+  tagSlug: string;
+  problemsSolved: number;
+}
+
 interface LeetcodeStatsData {
   totalSolved: number;
   easySolved: number;
@@ -10,6 +16,12 @@ interface LeetcodeStatsData {
   hardSolved: number;
   lastSubmissionDate: string | null;
   conceptStats: Record<string, { solved: number; total: number }>;
+  skills?: {
+    fundamental?: SkillTagItem[];
+    intermediate?: SkillTagItem[];
+    advanced?: SkillTagItem[];
+    tagCounts?: Record<string, number>;
+  };
   solvedProblems: string[];
   cached?: boolean;
 }
@@ -360,9 +372,119 @@ export default function LeetcodeAnalysis() {
       <LeetcodeRadarChart
         solvedProblems={stats?.solvedProblems || []}
         conceptStats={stats?.conceptStats || {}}
+        skills={stats?.skills}
         selectedTag={selectedTopicTag}
         onSelectTopic={(tag) => setSelectedTopicTag(tag)}
       />
+
+      {/* Real LeetCode Topic Statistics (Fundamental, Intermediate, Advanced via alfa-leetcode-api) */}
+      <div className="glass-card p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-800 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">⚡</span>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                LeetCode Topic Statistics
+              </h2>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Live tag-level problem breakdown synchronized from LeetCode GraphQL & alfa-leetcode-api
+            </p>
+          </div>
+          <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1.5">
+            <span>●</span> Live Verified Telemetry
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* FUNDAMENTAL */}
+          <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 p-5 bg-emerald-50/20 dark:bg-emerald-950/10 space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-emerald-100 dark:border-emerald-900/30">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <span>🌱</span> Fundamental
+              </span>
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">
+                {stats?.skills?.fundamental?.reduce((acc, x) => acc + x.problemsSolved, 0) || 0} Solved
+              </span>
+            </div>
+            <div className="space-y-1.5 max-h-[320px] overflow-y-auto pr-1">
+              {(stats?.skills?.fundamental || []).length > 0 ? (
+                stats?.skills?.fundamental?.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-2 rounded-lg bg-white/80 dark:bg-gray-800/80 text-xs shadow-xs border border-gray-100 dark:border-gray-800 hover:border-emerald-300 transition-all"
+                  >
+                    <span className="font-medium text-gray-800 dark:text-gray-200">{item.tagName}</span>
+                    <span className="font-mono font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[11px]">
+                      {item.problemsSolved}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-gray-500 dark:text-gray-400 py-4 text-center">Syncing fundamental stats...</div>
+              )}
+            </div>
+          </div>
+
+          {/* INTERMEDIATE */}
+          <div className="rounded-xl border border-blue-200 dark:border-blue-900/50 p-5 bg-blue-50/20 dark:bg-blue-950/10 space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-blue-100 dark:border-blue-900/30">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                <span>🌲</span> Intermediate
+              </span>
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300">
+                {stats?.skills?.intermediate?.reduce((acc, x) => acc + x.problemsSolved, 0) || 0} Solved
+              </span>
+            </div>
+            <div className="space-y-1.5 max-h-[320px] overflow-y-auto pr-1">
+              {(stats?.skills?.intermediate || []).length > 0 ? (
+                stats?.skills?.intermediate?.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-2 rounded-lg bg-white/80 dark:bg-gray-800/80 text-xs shadow-xs border border-gray-100 dark:border-gray-800 hover:border-blue-300 transition-all"
+                  >
+                    <span className="font-medium text-gray-800 dark:text-gray-200">{item.tagName}</span>
+                    <span className="font-mono font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-[11px]">
+                      {item.problemsSolved}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-gray-500 dark:text-gray-400 py-4 text-center">Syncing intermediate stats...</div>
+              )}
+            </div>
+          </div>
+
+          {/* ADVANCED */}
+          <div className="rounded-xl border border-purple-200 dark:border-purple-900/50 p-5 bg-purple-50/20 dark:bg-purple-950/10 space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-purple-100 dark:border-purple-900/30">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                <span>⚡</span> Advanced
+              </span>
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
+                {stats?.skills?.advanced?.reduce((acc, x) => acc + x.problemsSolved, 0) || 0} Solved
+              </span>
+            </div>
+            <div className="space-y-1.5 max-h-[320px] overflow-y-auto pr-1">
+              {(stats?.skills?.advanced || []).length > 0 ? (
+                stats?.skills?.advanced?.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-2 rounded-lg bg-white/80 dark:bg-gray-800/80 text-xs shadow-xs border border-gray-100 dark:border-gray-800 hover:border-purple-300 transition-all"
+                  >
+                    <span className="font-medium text-gray-800 dark:text-gray-200">{item.tagName}</span>
+                    <span className="font-mono font-bold px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 text-[11px]">
+                      {item.problemsSolved}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-gray-500 dark:text-gray-400 py-4 text-center">Syncing advanced stats...</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Concept-Wise Capacity & Unsolved Problem Recommender */}
       <div className="glass-card p-6 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl space-y-6">
@@ -375,7 +497,7 @@ export default function LeetcodeAnalysis() {
               </h2>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Select a domain below to see how many problems you can solve and get 3 high-yield, very easy unsolved problems.
+              Select a domain below to see your verified solved count and get 3 high-yield, very easy unsolved problems.
             </p>
           </div>
           <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
@@ -383,14 +505,17 @@ export default function LeetcodeAnalysis() {
           </span>
         </div>
 
-        {/* Domain Selection Tabs with Problem Counts */}
+        {/* Domain Selection Tabs with Real Problem Counts */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {LEETCODE_DOMAINS.map((domain) => {
             const isSelected = selectedTopicTag === domain.tag;
             const solvedSet = new Set((stats?.solvedProblems || []).map((s) => s.toLowerCase().trim()));
             const countSolved = domain.problems.filter((p) => solvedSet.has(p.slug.toLowerCase())).length;
-            const target = domain.benchmarkTarget;
-            const pct = Math.min(100, Math.round((countSolved / target) * 100));
+            const tagCounts = stats?.skills?.tagCounts || {};
+            const directTagCount = tagCounts[domain.name] ?? tagCounts[domain.tag] ?? 0;
+            const actualCount = Math.max(directTagCount, countSolved);
+            const maxVal = Math.max(...LEETCODE_DOMAINS.map(d => tagCounts[d.name] ?? tagCounts[d.tag] ?? 0), 20);
+            const pct = Math.min(100, Math.round((actualCount / maxVal) * 100));
 
             return (
               <button
@@ -411,7 +536,7 @@ export default function LeetcodeAnalysis() {
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                     }`}
                   >
-                    {countSolved}/{target}
+                    {actualCount} solved
                   </span>
                 </div>
 
@@ -445,7 +570,7 @@ export default function LeetcodeAnalysis() {
                       {topicRecommendation.domain.name}
                     </h3>
                     <span className="text-xs px-2.5 py-0.5 bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-semibold rounded-full">
-                      Placement Target: {topicRecommendation.domain.benchmarkTarget} problems
+                      Verified Solved: {stats?.skills?.tagCounts?.[topicRecommendation.domain.name] || stats?.skills?.tagCounts?.[topicRecommendation.domain.tag] || 0} problems
                     </span>
                   </div>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
